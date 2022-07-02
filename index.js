@@ -20,14 +20,23 @@ async function run() {
         console.log('db connected');
 
         app.get('/billing-list', async (req, res) => {
-            const allBill = await billingCollection.find().toArray();
-            res.send(allBill);
+            const billingPage = parseInt(req.query.billingPage);
+            const size = parseInt(req.query.size);
+
+            const query = {};
+            const cursor = billingCollection.find(query);
+            let bill;
+            if(billingPage || size){
+                bill = await cursor.skip(billingPage*size).limit(size).toArray();
+            }
+            else{
+                bill = await cursor.toArray();
+            }
+            res.send(bill);
         });
 
         app.get('/billing-list-count', async (req, res) => {
-            const query = {};
-            const cursor = billingCollection.find(query);
-            const count = await cursor.count();
+            const count = await billingCollection.estimatedDocumentCount();
             res.send({count});
         });
 
